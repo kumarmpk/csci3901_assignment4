@@ -1,0 +1,12 @@
+aabb
+cdee
+cfeg
+ffhg
+a 3 –
+b 1 –
+c 2 /
+d 2 =
+e 5 +
+f 9 *
+g 2 /
+h 4 =
