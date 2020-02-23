@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 //class is used to load, solve and print the puzzle
 
@@ -25,6 +22,8 @@ public class Mathdoku {
     private List<Group> groups = new ArrayList<>();
 
     private Set<Character> grpNames = new HashSet<>();
+
+    private Map<Character, List<Cell>> grpCellsMap = new HashMap<>();
 
     /*
     printString method
@@ -66,11 +65,23 @@ public class Mathdoku {
                         lineNoForGrps = lineNoForGrps + 1;
                     } else{
                         char[] grpNames = line.toCharArray();
-                        List<Character> cells = new ArrayList<>();
-                        for(char grpName : grpNames){
-                            cells.add(grpName);
+                        List<Character> grid = new ArrayList<>();
+                        for(int i = 0; i <= grpNames.length; i++){
+                            grid.add(grpNames[i]);
+                            if(grpCellsMap.containsKey(grpNames[i])){
+                                Cell cell = new Cell(lineNoForSize, i);
+                                List<Cell> grpCells = grpCellsMap.get(grpNames[i]);
+                                grpCells.add(cell);
+                                grpCellsMap.put(grpNames[i], grpCells);
+                            }
+                            else{
+                                Cell cell = new Cell(lineNoForSize, i);
+                                List<Cell> grpCells = new ArrayList<>();
+                                grpCells.add(cell);
+                                grpCellsMap.put(grpNames[i], grpCells);
+                            }
                         }
-                        grpNameOfCell.add(lineNoForSize, cells);
+                        grpNameOfCell.add(lineNoForSize, grid);
                         lineNoForSize = lineNoForSize + 1;
                     }
                     overAllLineNo = overAllLineNo + 1;
@@ -117,9 +128,31 @@ public class Mathdoku {
             return isReady;
         }
 
-        
+        if(validPuzzle()){
+            isReady = true;
+        } else {
+            isReady = false;
+            printString("Puzzle is invalid.");
+            return isReady;
+        }
+
 
         return isReady;
+    }
+
+    private boolean validPuzzle(){
+        boolean isValid = true;
+
+        for(Group grp : groups){
+            if(grp.getOperator() == '='){
+                List<Cell> cells = grpCellsMap.get(grp.getName());
+                if(cells == null || cells.isEmpty() || cells.size() != 1){
+                    isValid = false;
+                }
+            }
+        }
+
+        return isValid;
     }
 
     private boolean checkGrpListWithGrid(){
