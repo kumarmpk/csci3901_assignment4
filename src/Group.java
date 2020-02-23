@@ -14,26 +14,6 @@ public class Group{
     //operator of the group
     private Character operator;
 
-    //valid operators
-    private List<Character> validOperators;
-
-    /*
-    getValidOperators method
-    set the list of valid operators
-    returns the list
-     */
-    public List getValidOperators(){
-        if(this.validOperators == null){
-            this.validOperators = new ArrayList<>();
-            this.validOperators.add('+');
-            this.validOperators.add('-');
-            this.validOperators.add('*');
-            this.validOperators.add('/');
-            this.validOperators.add('=');
-        }
-        return this.validOperators;
-    }
-
     /*
     setResult method
     gets the result of the group as input

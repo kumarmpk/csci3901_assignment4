@@ -1,7 +1,9 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 //class is used to load, solve and print the puzzle
 
@@ -21,6 +23,8 @@ public class Mathdoku {
 
     //list of groups
     private List<Group> groups = new ArrayList<>();
+
+    private Set<Character> grpNames = new HashSet<>();
 
     /*
     printString method
@@ -46,12 +50,13 @@ public class Mathdoku {
                 int lineNoForGrps = 0;
                 while ((line = stream.readLine()) != null) {
                     if(line.contains(space)){
-                        char[] grpDesc = line.toCharArray();
-                        if(grpDesc.length == 5) {
+                        char[] grpDetails = line.toCharArray();
+                        if(grpDetails.length == 5) {
                             Group grp = new Group();
-                            grp.setName(grpDesc[0]);
-                            grp.setResult(Integer.valueOf(String.valueOf(grpDesc[2])));
-                            grp.setOperator(grpDesc[4]);
+                            grp.setName(grpDetails[0]);
+                            grpNames.add(grp.getName());
+                            grp.setResult(Integer.valueOf(String.valueOf(grpDetails[2])));
+                            grp.setOperator(grpDetails[4]);
                             groups.add(grp);
                         } else{
                             printString("Group description is wrong/without enough information in line number "+overAllLineNo);
@@ -96,9 +101,58 @@ public class Mathdoku {
     public boolean readyToSolve() {
         boolean isReady = false;
 
+        if(checkGrpOpr()){
+            isReady = true;
+        } else {
+            isReady = false;
+            printString("One of the groups does not have valid operator.");
+            return isReady;
+        }
 
+        if(checkGrpListWithGrid()){
+            isReady = true;
+        } else {
+            isReady = false;
+            printString("One of the groups does not have enough information to proceed.");
+            return isReady;
+        }
+
+        
 
         return isReady;
+    }
+
+    private boolean checkGrpListWithGrid(){
+        boolean isGrpExists = true;
+
+        for(List<Character> row : grpNameOfCell){
+            for(Character cell : row){
+                if(!grpNames.contains(cell)){
+                    isGrpExists = false;
+                }
+            }
+        }
+
+        return isGrpExists;
+    }
+
+    private boolean checkGrpOpr(){
+        boolean isGrpOprValid = true;
+
+        List<Character> validOperators = new ArrayList<>();
+        validOperators.add('+');
+        validOperators.add('-');
+        validOperators.add('*');
+        validOperators.add('/');
+        validOperators.add('=');
+
+        for(Group grp : groups){
+            if(!validOperators.contains(grp.getOperator())){
+                isGrpOprValid = false;
+            }
+        }
+
+        return isGrpOprValid;
     }
 
     /*
@@ -119,7 +173,15 @@ public class Mathdoku {
     returns the puzzle
      */
     public String print() {
-        String finalPuzzle = null;
+        String emptyString = "";
+        String finalPuzzle = emptyString;
+        String newLine = "\n";
+        for(List<Integer> rows : puzzle){
+            for(Integer cell : rows){
+                finalPuzzle = finalPuzzle.concat(String.valueOf(cell));
+            }
+            finalPuzzle = finalPuzzle.concat(newLine);
+        }
 
         return finalPuzzle;
     }
