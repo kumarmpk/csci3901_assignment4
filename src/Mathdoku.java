@@ -111,6 +111,7 @@ public class Mathdoku {
      */
     public boolean readyToSolve() {
         boolean isReady = false;
+        List<List<Integer>> testPuzzle = new ArrayList<>();
 
         if(checkGrpOpr()){
             isReady = true;
@@ -128,7 +129,7 @@ public class Mathdoku {
             return isReady;
         }
 
-        if(validPuzzle()){
+        if(validPuzzle(testPuzzle)){
             isReady = true;
         } else {
             isReady = false;
@@ -140,7 +141,7 @@ public class Mathdoku {
         return isReady;
     }
 
-    private boolean validPuzzle(){
+    private boolean validPuzzle(List<List<Integer>> validPuzzle){
         boolean isValid = true;
 
         for(Group grp : groups){
@@ -148,11 +149,63 @@ public class Mathdoku {
                 List<Cell> cells = grpCellsMap.get(grp.getName());
                 if(cells == null || cells.isEmpty() || cells.size() != 1){
                     isValid = false;
+                    return isValid;
+                } else {
+                    for(Cell cell : cells){
+                        if(validPuzzle.get(cell.getRowNumber()) == null || !validPuzzle.get(cell.getRowNumber()).isEmpty() ) {
+                            List<Integer> rowWise = new ArrayList<>();
+                            rowWise.add(cell.getColumnNumber(), grp.getResult());
+                            validPuzzle.add(cell.getRowNumber(), rowWise);
+                        }
+
+                        if(!checkInRow(validPuzzle.get(cell.getRowNumber()), grp.getResult())){
+                            isValid = false;
+                            return isValid;
+                        }
+                        if(!checkInColumn(cell, validPuzzle, grp.getResult())){
+                            isValid = false;
+                            return isValid;
+                        }
+                        List<Integer> rowWise = validPuzzle.get(cell.getRowNumber());
+                        rowWise.add(cell.getColumnNumber(), grp.getResult());
+                        validPuzzle.add(cell.getRowNumber(), rowWise);
+                    }
                 }
             }
         }
 
         return isValid;
+    }
+
+
+    private boolean checkInColumn(Cell cell, List<List<Integer>> locPuzzle, int value){
+        boolean validColValue = true;
+
+        for(List<Integer> rowWise : locPuzzle){
+            for(int columnNo = 0; columnNo < rowWise.size() ; columnNo++){
+                if(columnNo == cell.getColumnNumber()){
+                    if(rowWise.get(columnNo) == value){
+                        validColValue = false;
+                        return validColValue;
+                    }
+                }
+            }
+        }
+
+        return validColValue;
+    }
+
+    private boolean checkInRow(List<Integer> rowWise, int value){
+        boolean validRowValue = true;
+
+        for(int cell : rowWise){
+            if(cell == value){
+                validRowValue = false;
+                return validRowValue;
+            }
+        }
+
+        return validRowValue;
     }
 
     private boolean checkGrpListWithGrid(){
@@ -195,9 +248,151 @@ public class Mathdoku {
     public boolean solve() {
         boolean isSolved = false;
 
-
+        Cell nullCell = nullCheck();
+        if(nullCell != null){
+            for(int value = 1; value <= size; value++){
+                if(checkInRow(puzzle.get(nullCell.getRowNumber()), value)){
+                    if(checkInColumn(nullCell, puzzle, value)){
+                        if(checkInGrp(nullCell, value)){
+                            List<Integer> rowWise = puzzle.get(nullCell.getRowNumber());
+                            rowWise.add(nullCell.getColumnNumber(), value);
+                            puzzle.add(nullCell.getRowNumber(), rowWise);
+                            if(solve()){
+                                isSolved = true;
+                            }
+                            List<Integer> rowWise2 = puzzle.get(nullCell.getRowNumber());
+                            rowWise.add(nullCell.getColumnNumber(), 0);
+                            puzzle.add(nullCell.getRowNumber(), rowWise);
+                        }
+                    }
+                }
+            }
+            isSolved = false;
+        } else {
+            isSolved = true;
+        }
 
         return isSolved;
+    }
+
+    private boolean checkInGrp(Cell cell, int value){
+        boolean validGrpValue = false;
+        Character grpName = null;
+        Group group = null;
+
+        List<Character> rowWiseGrpNames = grpNameOfCell.get(cell.getRowNumber());
+        grpName = rowWiseGrpNames.get(cell.getColumnNumber());
+
+        for(Group grp : groups){
+            if(grp.getName() == grpName){
+                group = grp;
+            }
+        }
+
+        List<Cell> grpCells = grpCellsMap.get(grpName);
+
+        if(group.getOperator() == '+'){
+            int grpResult = value;
+            for(Cell grpCell : grpCells){
+                List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                grpResult = grpResult + cellValue;
+            }
+            if(grpResult <= group.getResult()){
+                validGrpValue = true;
+                return validGrpValue;
+            }
+        }
+        if(group.getOperator() == '-'){
+            int grpSize = grpCells.size();
+            int grpArr[] = new int[grpSize];
+            for(int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++){
+                Cell grpCell = grpCells.get(grpCellNo);
+                List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                if(cellValue == 0){
+                    validGrpValue = true;
+                    return validGrpValue;
+                }
+                grpArr[grpCellNo] = cellValue;
+            }
+
+            Arrays.sort(grpArr);
+            int max = Math.max(grpArr[grpSize], value);
+
+            for(int i = 0; i < grpSize; i++){
+                max = max - grpArr[i];
+            }
+
+            if(max == group.getResult()){
+                validGrpValue = true;
+                return validGrpValue;
+            }
+
+        }
+        if(group.getOperator() == '*'){
+            int grpResult = value;
+            for(Cell grpCell : grpCells){
+                List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                grpResult = grpResult * cellValue;
+            }
+            if(grpResult <= group.getResult()){
+                validGrpValue = true;
+                return validGrpValue;
+            }
+        }
+        if(group.getOperator() == '/'){
+            int grpSize = grpCells.size();
+            int grpArr[] = new int[grpSize];
+            for(int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++){
+                Cell grpCell = grpCells.get(grpCellNo);
+                List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                if(cellValue == 0){
+                    validGrpValue = true;
+                    return validGrpValue;
+                }
+                grpArr[grpCellNo] = cellValue;
+            }
+
+            Arrays.sort(grpArr);
+            int max = Math.max(grpArr[grpSize], value);
+
+            for(int i = 0; i < grpSize; i++){
+                max = max / grpArr[i];
+            }
+
+            if(max == group.getResult()){
+                validGrpValue = true;
+                return validGrpValue;
+            }
+        }
+        if(group.getOperator() == '='){
+            if(value == group.getResult()){
+                validGrpValue = true;
+                return validGrpValue;
+            }
+        }
+
+        return validGrpValue;
+    }
+
+    private Cell nullCheck(){
+        if(puzzle == null && puzzle.isEmpty()){
+            return null;
+        }
+        for(int rowNo = 0; rowNo < puzzle.size() ; rowNo++){
+            List<Integer> rowWise = puzzle.get(rowNo);
+            for(int columnNo = 0; columnNo < rowWise.size(); columnNo++){
+                int cellValue = rowWise.get(columnNo);
+                if(cellValue ==0){
+                    return new Cell(rowNo, columnNo);
+                }
+            }
+        }
+
+        return null;
     }
 
     /*
