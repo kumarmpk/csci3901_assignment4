@@ -53,7 +53,7 @@ public class Mathdoku {
                         if(grpDetails.length == 5) {
                             Group grp = new Group();
                             grp.setName(grpDetails[0]);
-                            grpNames.add(grp.getName());
+                            grpNames.add(grpDetails[0]);
                             grp.setResult(Integer.valueOf(String.valueOf(grpDetails[2])));
                             grp.setOperator(grpDetails[4]);
                             groups.add(grp);
@@ -66,7 +66,7 @@ public class Mathdoku {
                     } else{
                         char[] grpNames = line.toCharArray();
                         List<Character> grid = new ArrayList<>();
-                        for(int i = 0; i <= grpNames.length; i++){
+                        for(int i = 0; i < grpNames.length; i++){
                             grid.add(grpNames[i]);
                             if(grpCellsMap.containsKey(grpNames[i])){
                                 Cell cell = new Cell(lineNoForSize, i);
@@ -111,7 +111,7 @@ public class Mathdoku {
      */
     public boolean readyToSolve() {
         boolean isReady = false;
-        List<List<Integer>> testPuzzle = new ArrayList<>();
+        List<List<Integer>> testPuzzle = setZeroInAllCell();
 
         if(checkGrpOpr()){
             isReady = true;
@@ -141,6 +141,18 @@ public class Mathdoku {
         return isReady;
     }
 
+    private List<List<Integer>> setZeroInAllCell(){
+        List<List<Integer>> allZeroPuzzle = new ArrayList<>();
+        for(List<Character> rowWiseGrpName : grpNameOfCell){
+            List<Integer> rowWiseCellValue = new ArrayList<>();
+            for(Character c : rowWiseGrpName){
+                rowWiseCellValue.add(0);
+            }
+            allZeroPuzzle.add(rowWiseCellValue);
+        }
+        return allZeroPuzzle;
+    }
+
     private boolean validPuzzle(List<List<Integer>> validPuzzle){
         boolean isValid = true;
 
@@ -152,7 +164,7 @@ public class Mathdoku {
                     return isValid;
                 } else {
                     for(Cell cell : cells){
-                        if(validPuzzle.get(cell.getRowNumber()) == null || !validPuzzle.get(cell.getRowNumber()).isEmpty() ) {
+                        if(validPuzzle.isEmpty() || validPuzzle.get(cell.getRowNumber()) == null || validPuzzle.get(cell.getRowNumber()).isEmpty() ) {
                             List<Integer> rowWise = new ArrayList<>();
                             rowWise.add(cell.getColumnNumber(), grp.getResult());
                             validPuzzle.add(cell.getRowNumber(), rowWise);
@@ -228,6 +240,7 @@ public class Mathdoku {
         List<Character> validOperators = new ArrayList<>();
         validOperators.add('+');
         validOperators.add('-');
+        validOperators.add('–');
         validOperators.add('*');
         validOperators.add('/');
         validOperators.add('=');
@@ -250,19 +263,20 @@ public class Mathdoku {
 
         Cell nullCell = nullCheck();
         if(nullCell != null){
-            for(int value = 1; value <= size; value++){
-                if(checkInRow(puzzle.get(nullCell.getRowNumber()), value)){
-                    if(checkInColumn(nullCell, puzzle, value)){
-                        if(checkInGrp(nullCell, value)){
-                            List<Integer> rowWise = puzzle.get(nullCell.getRowNumber());
-                            rowWise.add(nullCell.getColumnNumber(), value);
-                            puzzle.add(nullCell.getRowNumber(), rowWise);
-                            if(solve()){
-                                isSolved = true;
+            for(int rowWiseValue = 1; rowWiseValue <= size; rowWiseValue++){
+                for(int value = 1; value <= size; value++) {
+                    if (checkInRow(puzzle.get(nullCell.getRowNumber()), value)) {
+                        if (checkInColumn(nullCell, puzzle, value)) {
+                            if (checkInGrp(nullCell, value)) {
+                                List<Integer> rowWise = puzzle.get(nullCell.getRowNumber());
+                                rowWise.set(nullCell.getColumnNumber(), value);
+                                if (solve()) {
+                                    isSolved = true;
+                                    return isSolved;
+                                }
+                                List<Integer> rowWise2 = puzzle.get(nullCell.getRowNumber());
+                                rowWise2.set(nullCell.getColumnNumber(), 0);
                             }
-                            List<Integer> rowWise2 = puzzle.get(nullCell.getRowNumber());
-                            rowWise.add(nullCell.getColumnNumber(), 0);
-                            puzzle.add(nullCell.getRowNumber(), rowWise);
                         }
                     }
                 }
@@ -286,6 +300,7 @@ public class Mathdoku {
         for(Group grp : groups){
             if(grp.getName() == grpName){
                 group = grp;
+                break;
             }
         }
 
@@ -303,7 +318,7 @@ public class Mathdoku {
                 return validGrpValue;
             }
         }
-        if(group.getOperator() == '-'){
+        if(group.getOperator() == '-' || group.getOperator() == '–'){
             int grpSize = grpCells.size();
             int grpArr[] = new int[grpSize];
             for(int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++){
@@ -379,8 +394,8 @@ public class Mathdoku {
     }
 
     private Cell nullCheck(){
-        if(puzzle == null && puzzle.isEmpty()){
-            return null;
+        if(puzzle == null || puzzle.isEmpty()){
+            puzzle = setZeroInAllCell();
         }
         for(int rowNo = 0; rowNo < puzzle.size() ; rowNo++){
             List<Integer> rowWise = puzzle.get(rowNo);

@@ -2,7 +2,7 @@ aabb
 cdee
 cfeg
 ffhg
-a 3 –
+a 3 -
 b 1 –
 c 2 /
 d 2 =

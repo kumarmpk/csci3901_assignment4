@@ -62,7 +62,7 @@ public class Group{
     returns the name of the group
     */
     public Character getName(){
-        return this.operator;
+        return this.name;
     }
 
 }
