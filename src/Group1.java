@@ -1,15 +1,18 @@
 //Stores the information of the grouped cells
 
-public class Group {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Group{
 
     //name of the group
-    private String name;
+    private Character name;
 
     //result of the group
     private int result;
 
     //operator of the group
-    private String operator;
+    private Character operator;
 
     /*
     setResult method
@@ -33,7 +36,7 @@ public class Group {
     gets the operator of the group as input
     sets the input in the operator of this object
     */
-    public void setOperator(String operator){
+    public void setOperator(Character operator){
         this.operator = operator;
     }
 
@@ -41,7 +44,7 @@ public class Group {
     getOperator method
     returns the operator of the group
     */
-    public String getOperator(){
+    public Character getOperator(){
         return this.operator;
     }
 
@@ -50,7 +53,7 @@ public class Group {
     gets the name of the group as input
     sets the input in the name of this object
     */
-    public void setName(String name){
+    public void setName(Character name){
         this.name = name;
     }
 
@@ -58,7 +61,7 @@ public class Group {
     getName method
     returns the name of the group
     */
-    public String getName(){
+    public Character getName(){
         return this.name;
     }
 

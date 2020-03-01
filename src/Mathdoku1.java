@@ -12,8 +12,6 @@ public class Mathdoku {
     //number of groups in the puzzle
     private int noOfGrps = 0;
 
-    private int choices = 0;
-
     //actual final puzzle
     private List<List<Integer>> puzzle = new ArrayList<>();
 
@@ -23,9 +21,9 @@ public class Mathdoku {
     //list of groups
     private List<Group> groups = new ArrayList<>();
 
-    private Set<String> grpNames = new HashSet<>();
+    private Set<Character> grpNames = new HashSet<>();
 
-    private Map<String, List<Cell>> grpCellsMap = new HashMap<>();
+    private Map<Character, List<Cell>> grpCellsMap = new HashMap<>();
 
     /*
     printString method
@@ -33,24 +31,6 @@ public class Mathdoku {
      */
     private void printString (String input){
         System.out.println(input);
-    }
-
-    private void clearAllDetails(){
-        if(grpNames != null && !grpNames.isEmpty()){
-            grpNames.clear();
-        }
-        if(groups != null && !groups.isEmpty()){
-            groups.clear();
-        }
-        if(grpCellsMap != null && !grpCellsMap.isEmpty()){
-            grpCellsMap.clear();
-        }
-        if(grpNameOfCell != null && !grpNameOfCell.isEmpty()){
-            grpNameOfCell.clear();
-        }
-        size = 0;
-        noOfGrps = 0;
-        choices = 0;
     }
 
     /*
@@ -61,7 +41,6 @@ public class Mathdoku {
     public boolean loadPuzzle(BufferedReader stream) {
         boolean isLoaded = true;
         String space = " ";
-        clearAllDetails();
         try {
             if (stream != null) {
                 String line = null;
@@ -69,21 +48,19 @@ public class Mathdoku {
                 int lineNoForSize = 0;
                 int lineNoForGrps = 0;
                 while ((line = stream.readLine()) != null) {
-                    line = line.trim();
                     if(line.contains(space)){
-                        String[] grpDetails = line.split(space);
-                        if(grpDetails.length == 3) {
+                        char[] grpDetails = line.toCharArray();
+                        if(grpDetails.length == 5) {
                             Group grp = new Group();
                             grp.setName(grpDetails[0]);
                             grpNames.add(grpDetails[0]);
-                            grp.setResult(Integer.valueOf(grpDetails[1]));
-                            grp.setOperator(grpDetails[2]);
+                            grp.setResult(Integer.valueOf(String.valueOf(grpDetails[2])));
+                            grp.setOperator(grpDetails[4]);
                             groups.add(grp);
-                        } else {
-                            Group grp = new Group();
-                            grp.setName(line);
-                            grpNames.add(line);
-                            groups.add(grp);
+                        } else{
+                            printString("Group description is wrong/without enough information in line number "+overAllLineNo);
+                            isLoaded = false;
+                            break;
                         }
                         lineNoForGrps = lineNoForGrps + 1;
                     } else{
@@ -91,17 +68,17 @@ public class Mathdoku {
                         List<Character> grid = new ArrayList<>();
                         for(int i = 0; i < grpNames.length; i++){
                             grid.add(grpNames[i]);
-                            if(grpCellsMap.containsKey(String.valueOf(grpNames[i]))){
+                            if(grpCellsMap.containsKey(grpNames[i])){
                                 Cell cell = new Cell(lineNoForSize, i);
-                                List<Cell> grpCells = grpCellsMap.get(String.valueOf(grpNames[i]));
+                                List<Cell> grpCells = grpCellsMap.get(grpNames[i]);
                                 grpCells.add(cell);
-                                grpCellsMap.put(String.valueOf(grpNames[i]), grpCells);
+                                grpCellsMap.put(grpNames[i], grpCells);
                             }
                             else{
                                 Cell cell = new Cell(lineNoForSize, i);
                                 List<Cell> grpCells = new ArrayList<>();
                                 grpCells.add(cell);
-                                grpCellsMap.put(String.valueOf(grpNames[i]), grpCells);
+                                grpCellsMap.put(grpNames[i], grpCells);
                             }
                         }
                         grpNameOfCell.add(lineNoForSize, grid);
@@ -127,25 +104,6 @@ public class Mathdoku {
         return isLoaded;
     }
 
-    private boolean checkRowColSize(){
-        boolean validSize = true;
-
-        if(grpNameOfCell != null && !grpNameOfCell.isEmpty()){
-            int puzzleSize = grpNameOfCell.size();
-            for(int rowNo = 0; rowNo < puzzleSize ; rowNo++){
-                List<Character> rowWise = grpNameOfCell.get(rowNo);
-                if(puzzleSize != rowWise.size()){
-                    validSize = false;
-                    return validSize;
-                }
-            }
-        } else {
-            validSize = false;
-        }
-
-        return validSize;
-    }
-
     /*
     readyToSolve method
     checks the puzzle is valid and solvable
@@ -154,43 +112,31 @@ public class Mathdoku {
     public boolean readyToSolve() {
         boolean isReady = false;
         List<List<Integer>> testPuzzle = setZeroInAllCell();
-        try {
 
-            if(checkRowColSize()){
-                isReady = true;
-            } else {
-                isReady = false;
-                printString("Puzzle is invalid. It is not in n*n structure.");
-                return isReady;
-            }
-
-            if (checkGrpOpr()) {
-                isReady = true;
-            } else {
-                isReady = false;
-                printString("One of the groups does not have valid operator.");
-                return isReady;
-            }
-
-            if (checkGrpListWithGrid()) {
-                isReady = true;
-            } else {
-                isReady = false;
-                printString("One of the groups does not have enough information to proceed.");
-                return isReady;
-            }
-
-            if (validPuzzle(testPuzzle)) {
-                isReady = true;
-            } else {
-                isReady = false;
-                printString("Puzzle is invalid.");
-                return isReady;
-            }
-        } catch (Exception e){
+        if(checkGrpOpr()){
+            isReady = true;
+        } else {
             isReady = false;
-            printString("System faced unexpected exception in readyToSolve method.");
+            printString("One of the groups does not have valid operator.");
+            return isReady;
         }
+
+        if(checkGrpListWithGrid()){
+            isReady = true;
+        } else {
+            isReady = false;
+            printString("One of the groups does not have enough information to proceed.");
+            return isReady;
+        }
+
+        if(validPuzzle(testPuzzle)){
+            isReady = true;
+        } else {
+            isReady = false;
+            printString("Puzzle is invalid.");
+            return isReady;
+        }
+
 
         return isReady;
     }
@@ -209,40 +155,37 @@ public class Mathdoku {
 
     private boolean validPuzzle(List<List<Integer>> validPuzzle){
         boolean isValid = true;
-        if(groups != null && !groups.isEmpty() && grpCellsMap != null
-                && !grpCellsMap.isEmpty()) {
-            for (Group grp : groups) {
-                if (grp.getOperator().equals("=")) {
-                    List<Cell> cells = grpCellsMap.get(grp.getName());
-                    if (cells == null || cells.isEmpty() || cells.size() != 1) {
-                        isValid = false;
-                        return isValid;
-                    } else {
-                        for (Cell cell : cells) {
-                            if (validPuzzle.isEmpty() || validPuzzle.get(cell.getRowNumber()) == null || validPuzzle.get(cell.getRowNumber()).isEmpty()) {
-                                List<Integer> rowWise = new ArrayList<>();
-                                rowWise.add(cell.getColumnNumber(), grp.getResult());
-                                validPuzzle.add(cell.getRowNumber(), rowWise);
-                            }
 
-                            if (!checkInRow(validPuzzle.get(cell.getRowNumber()), grp.getResult())) {
-                                isValid = false;
-                                return isValid;
-                            }
-                            if (!checkInColumn(cell, validPuzzle, grp.getResult())) {
-                                isValid = false;
-                                return isValid;
-                            }
-                            List<Integer> rowWise = validPuzzle.get(cell.getRowNumber());
+        for(Group grp : groups){
+            if(grp.getOperator() == '='){
+                List<Cell> cells = grpCellsMap.get(grp.getName());
+                if(cells == null || cells.isEmpty() || cells.size() != 1){
+                    isValid = false;
+                    return isValid;
+                } else {
+                    for(Cell cell : cells){
+                        if(validPuzzle.isEmpty() || validPuzzle.get(cell.getRowNumber()) == null || validPuzzle.get(cell.getRowNumber()).isEmpty() ) {
+                            List<Integer> rowWise = new ArrayList<>();
                             rowWise.add(cell.getColumnNumber(), grp.getResult());
                             validPuzzle.add(cell.getRowNumber(), rowWise);
                         }
+
+                        if(!checkInRow(validPuzzle.get(cell.getRowNumber()), grp.getResult())){
+                            isValid = false;
+                            return isValid;
+                        }
+                        if(!checkInColumn(cell, validPuzzle, grp.getResult())){
+                            isValid = false;
+                            return isValid;
+                        }
+                        List<Integer> rowWise = validPuzzle.get(cell.getRowNumber());
+                        rowWise.add(cell.getColumnNumber(), grp.getResult());
+                        validPuzzle.add(cell.getRowNumber(), rowWise);
                     }
                 }
             }
-        } else{
-            isValid = false;
         }
+
         return isValid;
     }
 
@@ -280,41 +223,34 @@ public class Mathdoku {
     private boolean checkGrpListWithGrid(){
         boolean isGrpExists = true;
 
-        if(grpNameOfCell != null && !grpNameOfCell.isEmpty() &&
-                grpNames != null && !grpNames.isEmpty()) {
-            for (List<Character> row : grpNameOfCell) {
-                for (Character cell : row) {
-                    if (!grpNames.contains(String.valueOf(cell))) {
-                        isGrpExists = false;
-                    }
+        for(List<Character> row : grpNameOfCell){
+            for(Character cell : row){
+                if(!grpNames.contains(cell)){
+                    isGrpExists = false;
                 }
             }
-        } else {
-            isGrpExists = false;
         }
+
         return isGrpExists;
     }
 
     private boolean checkGrpOpr(){
         boolean isGrpOprValid = true;
 
-        List<String> validOperators = new ArrayList<>();
-        validOperators.add("+");
-        validOperators.add("-");
-        validOperators.add("–");
-        validOperators.add("*");
-        validOperators.add("/");
-        validOperators.add("=");
+        List<Character> validOperators = new ArrayList<>();
+        validOperators.add('+');
+        validOperators.add('-');
+        validOperators.add('–');
+        validOperators.add('*');
+        validOperators.add('/');
+        validOperators.add('=');
 
-        if(groups != null && !groups.isEmpty()) {
-            for (Group grp : groups) {
-                if (!validOperators.contains(String.valueOf(grp.getOperator()))) {
-                    isGrpOprValid = false;
-                }
+        for(Group grp : groups){
+            if(!validOperators.contains(grp.getOperator())){
+                isGrpOprValid = false;
             }
-        } else {
-            isGrpOprValid = false;
         }
+
         return isGrpOprValid;
     }
 
@@ -334,7 +270,6 @@ public class Mathdoku {
                                 List<Integer> rowWise = puzzle.get(nullCell.getRowNumber());
                                 rowWise.set(nullCell.getColumnNumber(), value);
                                 System.out.println("set value" + "\n" +print());
-                                choices++;
                                 if (solve()) {
                                     isSolved = true;
                                     return isSolved;
@@ -351,24 +286,23 @@ public class Mathdoku {
                 isSolved = true;
             }
         } catch (Exception e){
-            isSolved = false;
-            printString("System faced unexpected exception in solve method.");
+            e.printStackTrace();
         }
         return isSolved;
     }
 
     private boolean checkInGrp(Cell cell, int value){
         boolean validGrpValue = false;
-        String grpName = null;
+        Character grpName = null;
         Group group = null;
         boolean zeroPresence = false;
         boolean firstZeroFlag = false;
 
         List<Character> rowWiseGrpNames = grpNameOfCell.get(cell.getRowNumber());
-        grpName = String.valueOf(rowWiseGrpNames.get(cell.getColumnNumber()));
+        grpName = rowWiseGrpNames.get(cell.getColumnNumber());
 
         for(Group grp : groups){
-            if(grp.getName().equals(grpName)){
+            if(grp.getName() == grpName){
                 group = grp;
                 break;
             }
@@ -376,7 +310,7 @@ public class Mathdoku {
 
         List<Cell> grpCells = grpCellsMap.get(grpName);
 
-        if(group.getOperator().equals("+")){
+        if(group.getOperator() == '+'){
             int grpResult = value;
             for(Cell grpCell : grpCells){
                 List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
@@ -388,7 +322,7 @@ public class Mathdoku {
                 return validGrpValue;
             }
         }
-        if(group.getOperator().equals("-") || group.getOperator().equals("–")){
+        if(group.getOperator() == '-' || group.getOperator() == '–'){
             int grpSize = grpCells.size();
             int grpArr[] = new int[grpSize];
             for(int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++){
@@ -420,37 +354,19 @@ public class Mathdoku {
             }
 
         }
-        if(group.getOperator().equals("*")){
-            int grpSize = grpCells.size();
-            int grpArr[] = new int[grpSize];
-            for(int grpCellNo = 0 ; grpCellNo < grpSize ; grpCellNo++){
-                Cell grpCell = grpCells.get(grpCellNo);
+        if(group.getOperator() == '*'){
+            int grpResult = value;
+            for(Cell grpCell : grpCells){
                 List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
                 int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
-                if(cellValue != 0 || firstZeroFlag){
-                    grpArr[grpCellNo] = cellValue;
-                } else if(cellValue == 0 && !firstZeroFlag){
-                    firstZeroFlag = true;
-                    grpArr[grpCellNo] = value;
-                }
+                grpResult = grpResult * cellValue;
             }
-
-            int max = 1;
-
-            for(int i = 0; i < grpSize; i++){
-                if(grpArr[i] == 0){
-                    zeroPresence = true;
-                    break;
-                }
-                max = max * grpArr[i];
-            }
-
-            if(max == group.getResult() || zeroPresence){
+            if(grpResult <= group.getResult()){
                 validGrpValue = true;
                 return validGrpValue;
             }
         }
-        if(group.getOperator().equals("/")){
+        if(group.getOperator() == '/'){
             int grpSize = grpCells.size();
             int grpArr[] = new int[grpSize];
             for(int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++){
@@ -487,7 +403,7 @@ public class Mathdoku {
                 return validGrpValue;
             }
         }
-        if(group.getOperator().equals("=")){
+        if(group.getOperator() == '='){
             if(value == group.getResult()){
                 validGrpValue = true;
                 return validGrpValue;
@@ -523,38 +439,13 @@ public class Mathdoku {
         String emptyString = "";
         String finalPuzzle = emptyString;
         String newLine = "\n";
-        try {
-            if (puzzle != null && !puzzle.isEmpty()) {
-                for (int i = 0; i < puzzle.size(); i++) {
-                    List<Integer> rowsOfNos = puzzle.get(i);
-                    for (int j = 0; j < rowsOfNos.size(); j++) {
-                        int cell = rowsOfNos.get(j);
-                        if (cell != 0) {
-                            finalPuzzle = finalPuzzle.concat(String.valueOf(cell));
-                        } else {
-                            List<Character> rowsOfGrpName = grpNameOfCell.get(i);
-                            Character grpName = rowsOfGrpName.get(j);
-                            finalPuzzle = finalPuzzle.concat(String.valueOf(grpName));
-                        }
-                    }
-                    finalPuzzle = finalPuzzle.concat(newLine);
-                }
-            } else if (grpNameOfCell != null && !grpNameOfCell.isEmpty()) {
-                printString("Please solve the puzzle to print the output. Please find below the input.");
-                for (int i = 0; i < grpNameOfCell.size(); i++) {
-                    List<Character> rowsOfGrpName = grpNameOfCell.get(i);
-                    for (int j = 0; j < rowsOfGrpName.size(); j++) {
-                        Character grpName = rowsOfGrpName.get(j);
-                        finalPuzzle = finalPuzzle.concat(String.valueOf(grpName));
-                    }
-                }
-            } else {
-                printString("Please load data to print.");
+        for(List<Integer> rows : puzzle){
+            for(Integer cell : rows){
+                finalPuzzle = finalPuzzle.concat(String.valueOf(cell));
             }
-        } catch (Exception e){
-            finalPuzzle = null;
-            printString("System faced unexpected exception in print method.");
+            finalPuzzle = finalPuzzle.concat(newLine);
         }
+
         return finalPuzzle;
     }
 
@@ -563,7 +454,9 @@ public class Mathdoku {
     returns the number of choices/tries took to solve the puzzle
      */
     public int choices( ){
-        return choices;
+        int numberOfChoices = 0;
+
+        return numberOfChoices;
     }
 
 }
