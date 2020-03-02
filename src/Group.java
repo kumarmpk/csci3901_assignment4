@@ -6,7 +6,7 @@ public class Group {
     private String name;
 
     //result of the group
-    private int result;
+    private String result;
 
     //operator of the group
     private String operator;
@@ -16,7 +16,7 @@ public class Group {
     gets the result of the group as input
     sets the input in the result of this object
      */
-    public void setResult(int result){
+    public void setResult(String result){
         this.result = result;
     }
 
@@ -24,7 +24,7 @@ public class Group {
     getResult method
     returns the result of the group
      */
-    public int getResult(){
+    public String getResult(){
         return this.result;
     }
 

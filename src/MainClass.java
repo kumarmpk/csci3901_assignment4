@@ -128,7 +128,7 @@ public class MainClass {
         BufferedReader bufferedReader = null;
 
         try{
-            File file = new File("C:\\Users\\prath\\IdeaProjects\\Assignment4\\manoharan\\input4.txt");
+            File file = new File("C:\\Users\\prath\\IdeaProjects\\Assignment4\\manoharan\\input.txt");
             FileReader fileReader = new FileReader(file);
             bufferedReader = new BufferedReader(fileReader);
 
