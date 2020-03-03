@@ -356,9 +356,10 @@ public class Mathdoku {
 
                 int grpSize = grpCellsMap.get(grp.getName()).size();
 
+                //for addition
                 if(grp.getOperator().equals("+")){
                     int grpRes = Integer.valueOf(grp.getResult());
-                    if(grpSize != 2){
+                    if(grpSize != 2 && grpSize != 3){
                         for(int i = 1; i <= size ; i++ ){
                         //value should be less than the result
                             if(allPosVal[i-1] < grpRes){
@@ -370,7 +371,8 @@ public class Mathdoku {
                         for (int i = 0; i < size; i++) {
                             for (int j = i + 1; j < size; j++) {
                                 if(i != j){
-                                    if (allPosVal[i] + allPosVal[j] == grpRes) {
+                                    //combination sum should be same as result
+                                    if ((allPosVal[i] + allPosVal[j]) == grpRes) {
                                         grp.getGrpPosVal().add(allPosVal[i]);
                                         grp.getGrpPosVal().add(allPosVal[j]);
                                     }
@@ -378,10 +380,26 @@ public class Mathdoku {
                             }
                         }
                     }
+                    if(grpSize == 3){
+                        for (int i = 0; i < size; i++) {
+                            for (int j = 0; j < size; j++) {
+                                for (int k = 0; k < size; k++) {
+                                    //combination sum should be same as result
+                                    if ((allPosVal[i] + allPosVal[j] + allPosVal[k]) == grpRes) {
+                                        grp.getGrpPosVal().add(allPosVal[i]);
+                                        grp.getGrpPosVal().add(allPosVal[j]);
+                                        grp.getGrpPosVal().add(allPosVal[k]);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+
+                //for multiplication
                 if(grp.getOperator().equals("*")){
                     int grpRes = Integer.valueOf(grp.getResult());
-                    if(grpSize != 2) {
+                    if(grpSize != 2 && grpSize != 3) {
                         for (float val : allPosVal) {
                             float result = Float.valueOf(grp.getResult());
                             float mod = result % val;
@@ -396,7 +414,8 @@ public class Mathdoku {
                         for (int i = 0; i < size; i++) {
                             for (int j = i + 1; j < size; j++) {
                                 if(i != j){
-                                    if (allPosVal[i] * allPosVal[j] == grpRes) {
+                                    //combination product should be same as result
+                                    if ((allPosVal[i] * allPosVal[j]) == grpRes) {
                                         grp.getGrpPosVal().add(allPosVal[i]);
                                         grp.getGrpPosVal().add(allPosVal[j]);
                                     }
@@ -404,7 +423,24 @@ public class Mathdoku {
                             }
                         }
                     }
+                    if(grpSize == 3){
+                        for (int i = 0; i < size; i++) {
+                            for (int j = 0; j < size; j++) {
+                                for (int k = 0; k < size; k++) {
+                                    //combination product should be same as result
+                                    if ((allPosVal[i] * allPosVal[j] * allPosVal[k]) == grpRes) {
+                                        grp.getGrpPosVal().add(allPosVal[i]);
+                                        grp.getGrpPosVal().add(allPosVal[j]);
+                                        grp.getGrpPosVal().add(allPosVal[k]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                 }
+
+                //for subtraction
                 if(grp.getOperator().equals("-") || grp.getOperator().equals("–")){
                     int grpRes = Integer.valueOf(grp.getResult());
                     if(grpSize != 2) {
@@ -416,6 +452,7 @@ public class Mathdoku {
                         for (int i = 0; i < size; i++) {
                             for (int j = i + 1; j < size; j++) {
                                 if(i != j){
+                                    //combination subtraction should be same as result
                                     if (allPosVal[i] - allPosVal[j] == grpRes ||
                                             allPosVal[j] - allPosVal[i] == grpRes) {
                                         grp.getGrpPosVal().add(allPosVal[i]);
@@ -427,6 +464,7 @@ public class Mathdoku {
                     }
                 }
 
+                //for division
                 if(grp.getOperator().equals("/")){
                     int grpRes = Integer.valueOf(grp.getResult());
                     if(grpSize != 2) {
@@ -438,6 +476,7 @@ public class Mathdoku {
                         for (int i = 0; i < size; i++) {
                             for (int j = i + 1; j < size; j++) {
                                 if(i != j){
+                                    //combination division should be same as result
                                     if (allPosVal[i] / allPosVal[j] == grpRes ||
                                             allPosVal[j] / allPosVal[i] == grpRes) {
                                         grp.getGrpPosVal().add(allPosVal[i]);
@@ -602,6 +641,9 @@ public class Mathdoku {
     public boolean solve(){
         boolean isSolve = false;
         choices = 0;
+        if(puzzle != null && !puzzle.isEmpty()){
+            puzzle.clear();
+        }
         try {
             if(readyToSolve()) {
                 calPosValGrp();
