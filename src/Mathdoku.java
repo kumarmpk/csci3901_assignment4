@@ -9,9 +9,6 @@ public class Mathdoku {
     //size of the puzzle
     private int size = 0;
 
-    //number of groups in the puzzle
-    private int noOfGrps = 0;
-
     //number of times a value has been stored in a cell to solve the puzzle
     private int choices = 0;
 
@@ -56,8 +53,10 @@ public class Mathdoku {
         if(grpNameOfCell != null && !grpNameOfCell.isEmpty()){
             grpNameOfCell.clear();
         }
+        if(puzzle != null && !puzzle.isEmpty()){
+            puzzle.clear();
+        }
         size = 0;
-        noOfGrps = 0;
         choices = 0;
     }
 
@@ -72,6 +71,8 @@ public class Mathdoku {
         int i = 0;
         for(String grpDtl : arr){
             grpDtl = grpDtl.trim();
+
+            //forming an array with non empty valid strings
             if(!grpDtl.isEmpty()){
                 returnArr[i] = grpDtl;
                 i = i + 1;
@@ -150,7 +151,6 @@ public class Mathdoku {
                 }
 
                 size = lineNoForSize;
-                noOfGrps = lineNoForGrps;
 
             } else {
                 printString("Input stream is empty.");
@@ -160,10 +160,6 @@ public class Mathdoku {
             //catch IO exception
             isLoaded = false;
             printString("Exception in reading the input stream in loadPuzzle method.");
-        }
-        catch (NumberFormatException e){
-            isLoaded = false;
-            printString("One of the group descriptions have non integer result expectation. Kindly correct it in input.");
         }
         catch (Exception e){
             //catch all exception
@@ -200,9 +196,9 @@ public class Mathdoku {
     }
 
     /*
-    readyToSolve method
-    checks the puzzle is valid and solvable
-    returns boolean value based on the validations
+    checkGrpListWithGrid method
+    checks whether all the group names in grid are available in group desc
+    returns boolean value
      */
     private boolean checkGrpListWithGrid(){
         boolean isGrpExists = true;
@@ -222,6 +218,11 @@ public class Mathdoku {
         return isGrpExists;
     }
 
+    /*
+    checkGrpResult method
+    checks whether the group result in the input is an integer
+    returns a boolean value
+     */
     private boolean checkGrpResult(){
         boolean isValidGrpResult = true;
 
@@ -229,6 +230,8 @@ public class Mathdoku {
             if(groups != null && !groups.isEmpty()){
                 for(Group grp : groups){
                     int result = Integer.valueOf(grp.getResult());
+
+                    //result should be positive integer
                     if(result <= 0){
                         isValidGrpResult = false;
                         return isValidGrpResult;
@@ -242,6 +245,11 @@ public class Mathdoku {
         return isValidGrpResult;
     }
 
+    /*
+    readyToSolve method
+    checks varius logics before solving the puzzle
+    returns boolean value
+     */
     public boolean readyToSolve() {
         boolean isReady = false;
         List<List<Integer>> testPuzzle = setZeroInAllCell();
@@ -274,6 +282,7 @@ public class Mathdoku {
                 return isReady;
             }
 
+            //checks whether the group result is a valid integer
             if(checkGrpResult()){
                 isReady = true;
             } else{
@@ -327,6 +336,122 @@ public class Mathdoku {
             }
         }
         return allZeroPuzzle;
+    }
+
+    /*
+    calPosValGrp method
+    calculates all the possible values of the method
+    and stores in group
+     */
+    private void calPosValGrp(){
+
+        if(groups != null && !groups.isEmpty()) {
+
+            int[] allPosVal = new int[size];
+            for(int i = 1; i <= size ; i++){
+                allPosVal[i-1] = i;
+            }
+
+            for (Group grp : groups) {
+
+                int grpSize = grpCellsMap.get(grp.getName()).size();
+
+                if(grp.getOperator().equals("+")){
+                    int grpRes = Integer.valueOf(grp.getResult());
+                    if(grpSize != 2){
+                        for(int i = 1; i <= size ; i++ ){
+                        //value should be less than the result
+                            if(allPosVal[i-1] < grpRes){
+                                grp.getGrpPosVal().add(allPosVal[i-1]);
+                            }
+                        }
+                    }
+                    if(grpSize == 2){
+                        for (int i = 0; i < size; i++) {
+                            for (int j = i + 1; j < size; j++) {
+                                if(i != j){
+                                    if (allPosVal[i] + allPosVal[j] == grpRes) {
+                                        grp.getGrpPosVal().add(allPosVal[i]);
+                                        grp.getGrpPosVal().add(allPosVal[j]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if(grp.getOperator().equals("*")){
+                    int grpRes = Integer.valueOf(grp.getResult());
+                    if(grpSize != 2) {
+                        for (float val : allPosVal) {
+                            float result = Float.valueOf(grp.getResult());
+                            float mod = result % val;
+
+                            //value should be a factor of the result
+                            if (mod == 0) {
+                                grp.getGrpPosVal().add((int) val);
+                            }
+                        }
+                    }
+                    if(grpSize == 2){
+                        for (int i = 0; i < size; i++) {
+                            for (int j = i + 1; j < size; j++) {
+                                if(i != j){
+                                    if (allPosVal[i] * allPosVal[j] == grpRes) {
+                                        grp.getGrpPosVal().add(allPosVal[i]);
+                                        grp.getGrpPosVal().add(allPosVal[j]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if(grp.getOperator().equals("-") || grp.getOperator().equals("–")){
+                    int grpRes = Integer.valueOf(grp.getResult());
+                    if(grpSize != 2) {
+                        for (int val : allPosVal) {
+                            grp.getGrpPosVal().add((int) val);
+                        }
+                    }
+                    if(grpSize == 2){
+                        for (int i = 0; i < size; i++) {
+                            for (int j = i + 1; j < size; j++) {
+                                if(i != j){
+                                    if (allPosVal[i] - allPosVal[j] == grpRes ||
+                                            allPosVal[j] - allPosVal[i] == grpRes) {
+                                        grp.getGrpPosVal().add(allPosVal[i]);
+                                        grp.getGrpPosVal().add(allPosVal[j]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(grp.getOperator().equals("/")){
+                    int grpRes = Integer.valueOf(grp.getResult());
+                    if(grpSize != 2) {
+                        for (int val : allPosVal) {
+                            grp.getGrpPosVal().add((int) val);
+                        }
+                    }
+                    if(grpSize == 2){
+                        for (int i = 0; i < size; i++) {
+                            for (int j = i + 1; j < size; j++) {
+                                if(i != j){
+                                    if (allPosVal[i] / allPosVal[j] == grpRes ||
+                                            allPosVal[j] / allPosVal[i] == grpRes) {
+                                        grp.getGrpPosVal().add(allPosVal[i]);
+                                        grp.getGrpPosVal().add(allPosVal[j]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+            }
+        }
     }
 
     /*
@@ -474,12 +599,27 @@ public class Mathdoku {
         return isGrpOprValid;
     }
 
+    public boolean solve(){
+        boolean isSolve = false;
+        choices = 0;
+        try {
+            if(readyToSolve()) {
+                calPosValGrp();
+                isSolve = trySolve();
+            }
+        }catch (Exception e){
+            isSolve = false;
+            printString("Unexpected exception in solve method.");
+        }
+        return isSolve;
+    }
+
     /*
     solve method
     solves the methdoku if its solvable
     returns boolean value
      */
-    public boolean solve() {
+    public boolean trySolve() {
         boolean isSolved = false;
         try {
 
@@ -503,12 +643,12 @@ public class Mathdoku {
 
                                     //set the value in the cell
                                     rowWise.set(nullCell.getColumnNumber(), value);
-                                    System.out.println("set value" + "\n" +print());
+                                    //System.out.println("set value" + "\n" +print());
                                     //incrementing the number of choices made
                                     choices++;
 
                                     //make a recursive call till we set value in all cells
-                                    if (solve()) {
+                                    if (trySolve()) {
                                         isSolved = true;
                                         return isSolved;
                                     }
@@ -516,7 +656,7 @@ public class Mathdoku {
                                     //if the value is not a fit - set zero in the cell
                                     List<Integer> rowWise2 = puzzle.get(nullCell.getRowNumber());
                                     rowWise2.set(nullCell.getColumnNumber(), 0);
-                                    System.out.println("set zero" + "\n" +print());
+                                    //System.out.println("set zero" + "\n" +print());
                                 }
                             }
                         }
@@ -572,151 +712,181 @@ public class Mathdoku {
 
             //check the operation is addition
             if (group.getOperator().equals("+")) {
+                if(group.getGrpPosVal().contains(value)) {
+                    int grpSize = grpCells.size();
+                    int grpArr[] = new int[grpSize];
 
-                //set the value into grpResult
-                int grpResult = value;
 
-                //add all the values of the group
-                for (Cell grpCell : grpCells) {
-                    List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
-                    int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
-                    grpResult = grpResult + cellValue;
-                }
+                    //form an array with the values of the group
+                    for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
+                        Cell grpCell = grpCells.get(grpCellNo);
+                        List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                        int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
 
-                //check the end value is less than or equal to group result provided in input
-                if (grpResult <= groupResult) {
-                    validGrpValue = true;
-                    return validGrpValue;
+                        //check the value is not zero or not the first zero of group
+                        if (cellValue != 0 || firstZeroFlag) {
+                            grpArr[grpCellNo] = cellValue;
+                        }
+                        //check the value is zero and first zero of group
+                        else if (cellValue == 0 && !firstZeroFlag) {
+                            firstZeroFlag = true;
+                            grpArr[grpCellNo] = value;
+                        }
+                    }
+
+                    int max = 0;
+
+                    //loop the elements of the group
+                    //if zero is present set the flag
+                    //if no zero subtract all values from the max value of the group
+                    for (int i = 0; i < grpSize; i++) {
+                        if (grpArr[i] == 0) {
+                            zeroPresence = true;
+                            break;
+                        }
+                        max = max + grpArr[i];
+                    }
+
+                    //check the end value is less than or equal to group result provided in input
+                    if (max == groupResult || zeroPresence) {
+                        validGrpValue = true;
+                        return validGrpValue;
+                    }
                 }
             }
 
             //check the operation is subraction
             if (group.getOperator().equals("-") || group.getOperator().equals("–")) {
-                int grpSize = grpCells.size();
-                int grpArr[] = new int[grpSize];
+                if(group.getGrpPosVal().contains(value)) {
+                    int grpSize = grpCells.size();
+                    int grpArr[] = new int[grpSize];
 
-                //form an array with the values of the group
-                for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
-                    Cell grpCell = grpCells.get(grpCellNo);
-                    List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
-                    int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                    //form an array with the values of the group
+                    for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
+                        Cell grpCell = grpCells.get(grpCellNo);
+                        List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                        int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
 
-                    //check the value is not zero or not the first zero of group
-                    if (cellValue != 0 || firstZeroFlag) {
-                        grpArr[grpCellNo] = cellValue;
+                        //check the value is not zero or not the first zero of group
+                        if (cellValue != 0 || firstZeroFlag) {
+                            grpArr[grpCellNo] = cellValue;
+                        }
+                        //check the value is zero and first zero of group
+                        else if (cellValue == 0 && !firstZeroFlag) {
+                            firstZeroFlag = true;
+                            grpArr[grpCellNo] = value;
+                        }
                     }
-                    //check the value is zero and first zero of group
-                    else if (cellValue == 0 && !firstZeroFlag) {
-                        firstZeroFlag = true;
-                        grpArr[grpCellNo] = value;
+
+                    //sorting the array
+                    Arrays.sort(grpArr);
+                    int max = 0;
+
+                    //loop the elements of the group
+                    //if zero is present set the flag
+                    //if no zero subtract all values from the max value of the group
+                    for (int i = 0; i < grpSize - 1; i++) {
+                        if (grpArr[i] == 0) {
+                            zeroPresence = true;
+                            break;
+                        }
+                        max = grpArr[grpSize - 1] - grpArr[i];
+                    }
+
+                    //check the end value with group result or zero presence
+                    if (max == groupResult || zeroPresence) {
+                        validGrpValue = true;
+                        return validGrpValue;
                     }
                 }
-
-                //sorting the array
-                Arrays.sort(grpArr);
-                int max = 0;
-
-                //loop the elements of the group
-                //if zero is present set the flag
-                //if no zero subtract all values from the max value of the group
-                for (int i = 0; i < grpSize - 1; i++) {
-                    if (grpArr[i] == 0) {
-                        zeroPresence = true;
-                        break;
-                    }
-                    max = grpArr[grpSize - 1] - grpArr[i];
-                }
-
-                //check the end value with group result or zero presence
-                if (max == groupResult || zeroPresence) {
-                    validGrpValue = true;
-                    return validGrpValue;
-                }
-
             }
 
             //check the operation is multiplication
             if (group.getOperator().equals("*")) {
-                int grpSize = grpCells.size();
-                int grpArr[] = new int[grpSize];
+                if(group.getGrpPosVal().contains(value)) {
+                    int grpSize = grpCells.size();
+                    int grpArr[] = new int[grpSize];
 
-                //form an array with group values
-                for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
-                    Cell grpCell = grpCells.get(grpCellNo);
-                    List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
-                    int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                    //form an array with group values
+                    for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
+                        Cell grpCell = grpCells.get(grpCellNo);
+                        List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                        int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
 
-                    //check value is not zero or not first zero value of the group
-                    if (cellValue != 0 || firstZeroFlag) {
-                        grpArr[grpCellNo] = cellValue;
+                        //check value is not zero or not first zero value of the group
+                        if (cellValue != 0 || firstZeroFlag) {
+                            grpArr[grpCellNo] = cellValue;
+                        }
+                        //check value is zero and first zero of group
+                        else if (cellValue == 0 && !firstZeroFlag) {
+                            firstZeroFlag = true;
+                            grpArr[grpCellNo] = value;
+                        }
                     }
-                    //check value is zero and first zero of group
-                    else if (cellValue == 0 && !firstZeroFlag) {
-                        firstZeroFlag = true;
-                        grpArr[grpCellNo] = value;
+
+                    int max = 1;
+
+                    //loop all the values of the group and multiply
+                    //if zero is present, set the flag value and break the loop
+                    //if no zero value, multiply all the values with each other
+                    for (int i = 0; i < grpSize; i++) {
+                        if (grpArr[i] == 0) {
+                            zeroPresence = true;
+                            break;
+                        }
+                        max = max * grpArr[i];
                     }
-                }
 
-                int max = 1;
-
-                //loop all the values of the group and multiply
-                //if zero is present, set the flag value and break the loop
-                //if no zero value, multiply all the values with each other
-                for (int i = 0; i < grpSize; i++) {
-                    if (grpArr[i] == 0) {
-                        zeroPresence = true;
-                        break;
+                    //check the end value with result of group or presence of zero
+                    if (max == groupResult || zeroPresence) {
+                        validGrpValue = true;
+                        return validGrpValue;
                     }
-                    max = max * grpArr[i];
-                }
-
-                //check the end value with result of group or presence of zero
-                if (max == groupResult || zeroPresence) {
-                    validGrpValue = true;
-                    return validGrpValue;
                 }
             }
 
             //check the operation is division
             if (group.getOperator().equals("/")) {
-                int grpSize = grpCells.size();
-                int grpArr[] = new int[grpSize];
+                if(group.getGrpPosVal().contains(value)) {
+                    int grpSize = grpCells.size();
+                    int grpArr[] = new int[grpSize];
 
-                //form an array with group values
-                for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
-                    Cell grpCell = grpCells.get(grpCellNo);
-                    List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
-                    int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
+                    //form an array with group values
+                    for (int grpCellNo = 0; grpCellNo < grpSize; grpCellNo++) {
+                        Cell grpCell = grpCells.get(grpCellNo);
+                        List<Integer> rowWiseCellValues = puzzle.get(grpCell.getRowNumber());
+                        int cellValue = rowWiseCellValues.get(grpCell.getColumnNumber());
 
-                    //check value is not zero or not first zero of the group
-                    if (cellValue != 0 || firstZeroFlag) {
-                        grpArr[grpCellNo] = cellValue;
+                        //check value is not zero or not first zero of the group
+                        if (cellValue != 0 || firstZeroFlag) {
+                            grpArr[grpCellNo] = cellValue;
+                        }
+                        //check value is zero and first zero of the group
+                        else if (cellValue == 0 && !firstZeroFlag) {
+                            firstZeroFlag = true;
+                            grpArr[grpCellNo] = value;
+                        }
                     }
-                    //check value is zero and first zero of the group
-                    else if (cellValue == 0 && !firstZeroFlag) {
-                        firstZeroFlag = true;
-                        grpArr[grpCellNo] = value;
+
+                    //sorting the values of the group
+                    Arrays.sort(grpArr);
+                    int max = 0;
+
+                    //loop all the values of the group
+                    //if zero is present, set the flag value and break the loop
+                    for (int i = 0; i < grpSize - 1; i++) {
+                        if (grpArr[i] == 0) {
+                            zeroPresence = true;
+                            break;
+                        }
+                        max = grpArr[grpSize - 1] / grpArr[i];
                     }
-                }
 
-                //sorting the values of the group
-                Arrays.sort(grpArr);
-                int max = 0;
-
-                //loop all the values of the group
-                //if zero is present, set the flag value and break the loop
-                for (int i = 0; i < grpSize - 1; i++) {
-                    if (grpArr[i] == 0) {
-                        zeroPresence = true;
-                        break;
+                    //check the end value with the group result of zero presence
+                    if (max == groupResult || zeroPresence) {
+                        validGrpValue = true;
+                        return validGrpValue;
                     }
-                    max = grpArr[grpSize - 1] / grpArr[i];
-                }
-
-                //check the end value with the group result of zero presence
-                if (max == groupResult || zeroPresence) {
-                    validGrpValue = true;
-                    return validGrpValue;
                 }
             }
 
@@ -795,6 +965,7 @@ public class Mathdoku {
                         Character grpName = rowsOfGrpName.get(j);
                         finalPuzzle = finalPuzzle.concat(String.valueOf(grpName));
                     }
+                    finalPuzzle = finalPuzzle.concat(newLine);
                 }
             }
             //in case load method is not called

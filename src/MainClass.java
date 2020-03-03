@@ -78,9 +78,10 @@ public class MainClass {
                 /* Do what the user asked for. */
 
                 if (userCommand.equalsIgnoreCase(load)) {
-
+                    System.out.println("enter the filename.");
+                    String fileName = userInput.next();
                     // Call the method
-                    booleanOutcome = mathdoku.loadPuzzle(getBufferedStream());
+                    booleanOutcome = mathdoku.loadPuzzle(getBufferedStream(fileName));
                     System.out.println(userCommand + " outcome " + booleanOutcome);
                 }
                 else if (userCommand.equalsIgnoreCase(ready)) {
@@ -124,18 +125,18 @@ public class MainClass {
     gets the full file path converts into the buffered stream of data
     returns the stream
      */
-    private static BufferedReader getBufferedStream(){
+    private static BufferedReader getBufferedStream(String fileName){
         BufferedReader bufferedReader = null;
 
         try{
-            File file = new File("C:\\Users\\prath\\IdeaProjects\\Assignment4\\manoharan\\input.txt");
-            FileReader fileReader = new FileReader(file);
-            bufferedReader = new BufferedReader(fileReader);
-
+            if(fileName != null && !fileName.isEmpty()) {
+                File file = new File(fileName);
+                FileReader fileReader = new FileReader(file);
+                bufferedReader = new BufferedReader(fileReader);
+            }
         } catch (Exception e){
             System.out.println("System faced unexpected exception in converting the file into stream.");
         }
-
         return bufferedReader;
     }
 

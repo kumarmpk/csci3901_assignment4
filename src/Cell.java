@@ -1,25 +1,16 @@
-//class will hold the row number and column number of the values
+//Object of this represents a cell in the puzzle
 
 public class Cell {
 
-    //row numbers of the cells that belongs to the group
-    private int rowNumber = 0;
+    //row number of the cell
+    private int rowNumber;
 
-    //column numbers of the cells that belongs to the group
-    private int columnNumber = 0;
+    //column number of the cell
+    private int columnNumber;
 
     Cell(int rowNumber, int columnNumber){
         this.rowNumber = rowNumber;
         this.columnNumber = columnNumber;
-    }
-
-    /*
-    setRowNumber method
-    gets rowNumber as input
-    sets the input into this object
-     */
-    public void setRowNumber(int rowNumber){
-        this.rowNumber = rowNumber;
     }
 
     /*
@@ -28,15 +19,6 @@ public class Cell {
      */
     public int getRowNumber(){
         return this.rowNumber;
-    }
-
-    /*
-    setColumnNumber method
-    gets columnNumber as input
-    sets the input into this object
-    */
-    public void setColumnNumber(int columnNumber){
-        this.columnNumber = columnNumber;
     }
 
     /*

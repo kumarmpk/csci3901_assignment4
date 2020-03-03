@@ -1,4 +1,7 @@
-//Stores the information of the grouped cells
+//Stores the information of the group
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class Group {
 
@@ -10,6 +13,8 @@ public class Group {
 
     //operator of the group
     private String operator;
+
+    private Set<Integer> grpPosVal = new HashSet();
 
     /*
     setResult method
@@ -60,6 +65,10 @@ public class Group {
     */
     public String getName(){
         return this.name;
+    }
+
+    public Set<Integer> getGrpPosVal(){
+        return this.grpPosVal;
     }
 
 }
