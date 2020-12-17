@@ -3,11 +3,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.*;
 
-public class MainClass {
-
-
-
-
+public class MainUI {
 
     // Retrieve data to the end of the line as an argument for a method call
     // Include two special kinds of arguments:
